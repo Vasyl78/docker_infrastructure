@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  db-pg:
+    image: postgres:14.8-alpine3.18
+    restart: always
+    platform: linux/amd64
+    container_name: db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./../volumes/postgres/init_db:/docker-entrypoint-initdb.d
+      - ./../volumes/postgres/data:/var/lib/postgresql/data
+    networks:
+      - infrastructure
+
+  db-mssql:
+    container_name: db-mssql
+    platform: linux/amd64
+    restart: always
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    user: root
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: TMP_PASSWORD1
+      MSSQL_PID: Express
+    volumes:
+      - ./../volumes/mssql/data:/var/opt/mssql
+      - ./../volumes/mssql/log:/var/opt/mssql/log
+    networks:
+      - infrastructure
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.8-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+       - ./../volumes/rabbitmq/data:/var/lib/rabbitmq
+       - ./../volumes/rabbitmq/log:/var/log/rabbitmq
+    networks:
+      - infrastructure
+
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./../volumes/redis/data:/data
+    networks:
+      - infrastructure
+
+  elasticsearch:
+    image: elasticsearch:8.13.4
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_USER=elastic_user
+      - ELASTICSEARCH_PASSWORD=elastic_password
+      - SCHEME=http
+      - 'ES_JAVA_OPTS=-Xms2g -Xmx2g'
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ports:
+      - 9200:9200
+    # command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node" ]
+    volumes:
+      - ./../volumes/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./../volumes/elasticsearch/config/certs:/usr/share/elasticsearch/config/certs
+    networks:
+      - infrastructure
+
+  kibana:
+    image: kibana:8.13.4
+    container_name: kibana
+    environment:
+      SERVER_NAME: kibana.local
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    volumes:
+      - ./../volumes/elasticsearch/config/certs:/usr/share/elasticsearch/config/certs
+      - ./../volumes/kibana/data:/usr/share/kibana/data
+    networks:
+      - infrastructure
+
+networks:
+  infrastructure:
+    name: infra
+    external: false

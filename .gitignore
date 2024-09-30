@@ -1,1 +1,7 @@
 tmp
+volumes
+compose_files
+
+!compose_files/docker-compose.infrastructure.yml
+!compose_files/docker-compose.test-ruby-project
+!**/.keep

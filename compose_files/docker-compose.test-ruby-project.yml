@@ -1,0 +1,18 @@
+---
+version: '3.8'
+services:
+  test-ruby-project:
+    image: test-ruby-project:dev
+    container_name: test-ruby-project
+    platform: linux/amd64
+    command: bash -c " while true; do echo 'Hit CTRL+C'; sleep 1; done "
+    environment: []
+    volumes:
+    - "./../tmp/test-ruby-project:/app"
+    # - "./../tmp/vendor/bundle:/usr/local/vendor/bundle"
+    networks:
+    - infrastructure
+networks:
+  infrastructure:
+    name: infra
+    external: true

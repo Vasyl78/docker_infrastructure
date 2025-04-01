@@ -1,0 +1,67 @@
+---
+version: '3.8'
+services:
+  internal-addresses:
+    image: addresses-app:dev
+    container_name: internal-addresses
+    platform: linux/amd64
+    command: bash -c "gem install -N bundler && bundle install; bundle exec rackup --host 0.0.0.0"
+    environment:
+      - APPLICATION_NAME=internal-addresses
+      - APPLICATION_VERSION=0.0.1
+      - REDIS_URL=redis://redis:6379
+    volumes:
+    - "./../../addresses-app:/app"
+    networks:
+    - infrastructure
+
+  internal-users:
+    image: users-app:dev
+    container_name: internal-users
+    platform: linux/amd64
+    command: bash -c "gem install -N bundler && bundle install; bundle exec rackup --host 0.0.0.0"
+    environment:
+      - APPLICATION_NAME=internal-users
+      - APPLICATION_VERSION=0.0.1
+      - REDIS_URL=redis://redis:6379
+      - ADDRESSES_GET_BY_UUID_URL=http://internal-addresses:9292/addresses/find-by?uuid=%<uuid>s
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    volumes:
+    - "./../../users-app:/app"
+    networks:
+    - infrastructure
+
+  external-licenses:
+    image: licenses-app:dev
+    container_name: external-licenses
+    platform: linux/amd64
+    command: bash -c "gem install -N bundler && bundle install; bundle exec rackup --host 0.0.0.0"
+    environment:
+      - APPLICATION_NAME=external-licenses
+      - APPLICATION_VERSION=0.0.1
+      - REDIS_URL=redis://redis:6379
+    volumes:
+    - "./../../licenses-app:/app"
+    networks:
+    - infrastructure
+
+  entrance-application:
+    image: entrance-app:dev
+    container_name: entrance-application
+    platform: linux/amd64
+    command: bash -c "gem install -N bundler && bundle install; bundle exec rackup --host 0.0.0.0"
+    environment:
+      - APPLICATION_NAME=entrance-application
+      - APPLICATION_VERSION=0.0.1
+      - REDIS_URL=redis://redis:6379
+      - USERS_FIND_BY_UID_URL=http://internal-users:9292/users/%<uuid>s
+      - LICENSES_VERIFY_URL=http://external-licenses:9292/licenses/verify
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    volumes:
+    - "./../../entrance-app:/app"
+    networks:
+    - infrastructure
+networks:
+  infrastructure:
+    name: infra
+    external: true

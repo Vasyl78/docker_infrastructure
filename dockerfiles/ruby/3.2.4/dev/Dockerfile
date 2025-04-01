@@ -34,7 +34,6 @@ RUN bundle config --global frozen 1 \
     && find $GEMS_FOLDER/ruby/3.2.0/gems/ -name "*.c" -delete \
     && find $GEMS_FOLDER/ruby/3.2.0/gems/ -name "*.o" -delete
 
-COPY $GEMS_FOLDER $GEMS_FOLDER
 COPY . .
 
 # Remove folders not needed in resulting image

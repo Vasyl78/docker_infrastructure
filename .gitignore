@@ -2,7 +2,10 @@ tmp
 volumes
 compose_files
 
-!compose_files/docker-compose.infrastructure.yml
+!compose_files/docker-compose.apm-server.yml
 !compose_files/docker-compose.ek-stack.yml
+!compose_files/docker-compose.fleet.yml
+!compose_files/docker-compose.infrastructure.yml
 !compose_files/docker-compose.test-ruby-project
+!compose_files/docker-compose.otel-collector
 !**/.keep

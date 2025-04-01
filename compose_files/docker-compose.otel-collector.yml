@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.115.1
+    volumes:
+      - otel-config:/etc/otelcol/
+    command: --config /etc/otelcol/otel-collector-config.yml
+    restart: always
+    container_name: otel-collector
+    environment:
+      - ELASTIC_AGENT_TOKEN=${ELASTIC_AGENT_TOKEN:-}
+    ports:
+      - 8889:8889
+      - 4318:4318
+    # depends_on:
+    #   - elastic-agent
+    networks:
+      - infrastructure
+
+volumes:
+  otel-config:
+    driver: local
+    driver_opts:
+      device: ./../volumes/otel_collector/config
+      o: bind  # This ensures that the volume is bound to the host path
+      type: none  # Specifies that no additional filesystem is needed
+
+networks:
+  infrastructure:
+    name: infra
+    external: true

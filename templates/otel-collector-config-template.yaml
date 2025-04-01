@@ -1,0 +1,46 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  otlp/elastic:
+    # APM Server endpoint
+    endpoint: http://apm-server:8200
+    headers:
+      Authorization: Bearer ${env:ELASTIC_AGENT_TOKEN}
+    tls:
+      insecure: true
+      insecure_skip_verify: true
+    # timeout: 20s
+    # sending_queue:
+    #   enabled: true
+    #   num_consumers: 10 # Increase to process more items in parallel
+    #   queue_size: 10000 # Increase queue size to handle bursts
+    # retry_on_failure:
+    #   enabled: true
+    #   initial_interval: 1s
+    #   max_interval: 10s
+    #   max_elapsed_time: 300s
+
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/elastic]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]
